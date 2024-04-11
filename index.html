@@ -15,9 +15,14 @@
             margin: 10px;
             font-size: 16px;
         }
-        #snapshot {
+        #snapshot-container {
             max-width: 80%;
             margin: 20px auto;
+        }
+        #snapshot {
+            width: 100%;
+            height: 600px;
+            border: none;
         }
     </style>
 </head>
@@ -28,7 +33,7 @@
     <input type="date" id="dateInput" required>
     <button onclick="loadSnapshot()">Show Snapshot</button>
 
-    <div id="snapshot"></div>
+    <div id="snapshot-container"></div>
 
     <script>
         function loadSnapshot() {
@@ -41,23 +46,10 @@
             }
 
             const formattedDate = formatDate(date);
-            const waybackUrl = `http://archive.org/wayback/available?url=${domain}&timestamp=${formattedDate}`;
+            const waybackUrl = `https://web.archive.org/web/${formattedDate}/${domain}`;
 
-            fetch(waybackUrl)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.archived_snapshots && data.archived_snapshots.closest) {
-                        const snapshotUrl = data.archived_snapshots.closest.url;
-                        const snapshotHtml = `<iframe src="${snapshotUrl}" width="100%" height="600px"></iframe>`;
-                        document.getElementById('snapshot').innerHTML = snapshotHtml;
-                    } else {
-                        document.getElementById('snapshot').innerHTML = '<p>Snapshot not found for this date.</p>';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching snapshot:', error);
-                    document.getElementById('snapshot').innerHTML = '<p>An error occurred while fetching the snapshot.</p>';
-                });
+            const snapshotHtml = `<iframe id="snapshot" src="${waybackUrl}" frameborder="0"></iframe>`;
+            document.getElementById('snapshot-container').innerHTML = snapshotHtml;
         }
 
         function formatDate(inputDate) {
