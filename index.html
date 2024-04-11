@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wayback Machine Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 50px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 10px;
+            font-size: 16px;
+        }
+        #snapshot {
+            max-width: 80%;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Wayback Machine Viewer</h1>
+    <p>Enter a domain name and a date to see how it looked in the past:</p>
+    <input type="text" id="domainInput" placeholder="Enter domain (e.g., example.com)" required>
+    <input type="date" id="dateInput" required>
+    <button onclick="loadSnapshot()">Show Snapshot</button>
+
+    <div id="snapshot"></div>
+
+    <script>
+        function loadSnapshot() {
+            const domain = document.getElementById('domainInput').value.trim();
+            const date = document.getElementById('dateInput').value;
+
+            if (!domain || !date) {
+                alert('Please enter both domain and date.');
+                return;
+            }
+
+            const formattedDate = formatDate(date);
+            const waybackUrl = `http://archive.org/wayback/available?url=${domain}&timestamp=${formattedDate}`;
+
+            fetch(waybackUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.archived_snapshots && data.archived_snapshots.closest) {
+                        const snapshotUrl = data.archived_snapshots.closest.url;
+                        const snapshotHtml = `<iframe src="${snapshotUrl}" width="100%" height="600px"></iframe>`;
+                        document.getElementById('snapshot').innerHTML = snapshotHtml;
+                    } else {
+                        document.getElementById('snapshot').innerHTML = '<p>Snapshot not found for this date.</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching snapshot:', error);
+                    document.getElementById('snapshot').innerHTML = '<p>An error occurred while fetching the snapshot.</p>';
+                });
+        }
+
+        function formatDate(inputDate) {
+            const dateObj = new Date(inputDate);
+            const year = dateObj.getFullYear();
+            const month = ('0' + (dateObj.getMonth() + 1)).slice(-2);
+            const day = ('0' + dateObj.getDate()).slice(-2);
+            return `${year}${month}${day}`;
+        }
+    </script>
+</body>
+</html>
